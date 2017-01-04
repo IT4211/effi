@@ -18,7 +18,7 @@ def ParseCommandLine():
 
     DisplayMessage("Command line processed: Successfully")
 
-    return
+    return gl_args.file
 
 def ValidateFile(theFile):
     if not os.path.exists(theFile):

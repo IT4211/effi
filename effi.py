@@ -10,5 +10,6 @@ import _image
 
 if __name__=='__main__':
 
-    _effi.ParseCommandLine()
+    imgfile = _effi.ParseCommandLine()
+    _image.tsk(imgfile)
 
