@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import ConfigParser # conf file parsing
 
 def extractconf():
