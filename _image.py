@@ -49,7 +49,6 @@ class tsk():
         ext = os.path.splitext(self.url)
 
         if ext[1] in ewformat:
-            # TODO : pyewf
             filenames = pyewf.glob(self.url)
             ewf_handle = pyewf.handle()
             ewf_handle.open(filenames)
@@ -57,12 +56,10 @@ class tsk():
             self.fs_info = pytsk3.FS_Info(img_info)
 
         elif ext[1] in rawformat:
-            # TODO : pytsk
             img_info = pytsk3.Img_Info(url = self.url)
             self.fs_info = pytsk3.FS_Info(img_info)
 
     def setconf(self):
-        # TODO : Extract condition from configuration file
         self.conf = _conf.extractconf()
         self.mtime = self.conf[0]
         self.atime = self.conf[1]
@@ -77,7 +74,6 @@ class tsk():
         stack.append(directory.info.fs_file.meta.addr)
 
         for directory_entry in directory:
-            print "[debug] ", type(directory_entry.info.meta)
             prefix = "+" * (len(stack) - 1)
             if prefix:
                 prefix += " "
@@ -180,6 +176,7 @@ class tsk():
 
         for i in self.extract_list:
             f = self.fs_info.open_meta(inode = int(i[0]))
+            print "[debug] ", type(f.info.meta)
             print "[debug] TEST", int(i[0])
             name = i[1]
             print name
@@ -197,8 +194,12 @@ class tsk():
 
                 try:
                     # 여기에 디렉토리 엔트리로부터 경로를 추가해주면 경로 복구해서 출력?
-                    output = open("./output/" + str(name), "w")
-                    output.write(data)
+                    if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
+                        path = os.path.join("./output/", name)
+                        os.mkdir(path)
+                    else:
+                        output = open("./output/" + str(name), "w")
+                        output.write(data)
 
                 except:
                     pass
