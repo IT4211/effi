@@ -25,15 +25,17 @@ class tsk():
             img_info = pytsk3.Img_Info(url = self.url)
             self.fs_info = pytsk3.FS_Info(img_info)
 
-
-
-
     def setconf(self):
         # TODO : Extract condition from configuration file
         self.conf = _conf.extractconf()
 
     def extractfile(self):
         # TODO : Extract files with settings applied
+
+
+    def writecsv(self):
+        # TODO : CSVWriter class? or function?
+
 
 class ewf_Img_Info(pytsk3.Img_info):
     def __init__(self, ewf_handle):

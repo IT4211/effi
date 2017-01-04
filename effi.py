@@ -11,5 +11,9 @@ import _image
 if __name__=='__main__':
 
     imgfile = _effi.ParseCommandLine()
-    _image.tsk(imgfile)
+    effi = _image.tsk(imgfile)
+    effi.loadimage()
+    effi.setconf()
+    effi.extractfile()
+    effi.writecsv()
 
