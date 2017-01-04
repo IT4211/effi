@@ -1,8 +1,6 @@
-import os, sys
+import os
 import argparse
 import logging
-import ConfigParser # conf file parsing
-
 
 log = logging.getLogger('main._effi')
 
