@@ -15,7 +15,7 @@ if __name__=='__main__':
     effi.loadimage()
     effi.setconf()
     #effi.extractfile()
-    dir = effi.open_directory('/Windows')
+    dir = effi.open_directory('/')
     effi.list_directory(dir, [], [])
     #effi.debug_print_extlist()
     effi.extract_directory_entry(path_option)
