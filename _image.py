@@ -1,4 +1,5 @@
-#-*- coding: utf-8 -*-
+from win32file import SetFileTime, CreateFile, CreateDirectory, CloseHandle
+from win32file import GENERIC_READ, GENERIC_WRITE, OPEN_EXISTING
 import pytsk3 # raw image analysis and file system analysis
 import pyewf  # ewf iamge file processing
 import os
@@ -85,6 +86,7 @@ class tsk():
                         directory_entry.info.name.name in [".", ".."]):
                 continue
 
+            # filtering
             self.print_directory_entry(directory_entry, prefix=prefix)
 
             if self._recursive:
@@ -122,7 +124,6 @@ class tsk():
 
     def print_directory_entry(self, directory_entry, prefix=""):
 
-
         meta = directory_entry.info.meta
         name = directory_entry.info.name
         ext = os.path.splitext(name.name)
@@ -132,6 +133,8 @@ class tsk():
         ctime = time.ctime(meta.crtime)
         etime = time.ctime(meta.ctime)
         size = meta.size
+
+        maceTime = [meta.mtime, meta.atime, meta.crtime, meta.ctime]
 
         print mtime, atime, ctime, etime, name.name, size
         self.oCSV.writeCSVRow(name.name, str(ext[1]), "N/A", size, mtime, atime, ctime, etime, "N/A")
@@ -166,7 +169,7 @@ class tsk():
                 if meta and name:
                     print("{0:s}{1:s} {2:s}:\t{3:s}".format(
                         prefix, directory_entry_type, inode, filename))
-                    self.extract_list.append((inode, filename))
+                    self.extract_list.append((inode, filename, maceTime))
 
     def debug_print_extlist(self):
         print "[debug] extract_list"
@@ -181,6 +184,9 @@ class tsk():
             name = i[1]
             print name
 
+            mace = i[2]
+            print mace
+
             offset = 0
             size = f.info.meta.size
             BUFF_SIZE = 1024 * 1024
@@ -193,12 +199,13 @@ class tsk():
                 offset += len(data)
 
                 try:
-                    # 여기에 디렉토리 엔트리로부터 경로를 추가해주면 경로 복구해서 출력?
+                    # path!!
                     if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
                         path = os.path.join("./output/", name)
                         os.mkdir(path)
                     else:
-                        output = open("./output/" + str(name), "w")
+                        path = os.path.join("./output/", name)
+                        output = open(path, "w")
                         output.write(data)
 
                 except:
@@ -206,6 +213,14 @@ class tsk():
 
                 finally:
                     output.close()
+                    print "[debug] : ", path
+                    if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
+                        #dh = CreateDirectory(path, sa)
+                        pass
+                    else:
+                        fh = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, 0)
+                        SetFileTime(fh, mace[0], mace[1], mace[2], mace[3])
+                        CloseHandle(fh)
 
 class ewf_Img_Info(pytsk3.Img_Info):
     def __init__(self, ewf_handle):
@@ -222,4 +237,3 @@ class ewf_Img_Info(pytsk3.Img_Info):
 
     def get_size(self):
         return self._ewf_handle.get_media_size()
-
