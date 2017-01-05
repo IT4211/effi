@@ -10,12 +10,12 @@ import _image
 
 if __name__=='__main__':
 
-    imgfile = _effi.ParseCommandLine()
+    imgfile, path_option = _effi.ParseCommandLine()
     effi = _image.tsk(imgfile)
     effi.loadimage()
     effi.setconf()
     #effi.extractfile()
-    dir = effi.open_directory('/')
-    effi.list_directory(dir, [])
+    dir = effi.open_directory('/Windows')
+    effi.list_directory(dir, [], [])
     #effi.debug_print_extlist()
-    effi.extract_directory_entry()
+    effi.extract_directory_entry(path_option)

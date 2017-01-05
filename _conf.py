@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-import ConfigParser # conf file parsing
+import ConfigParser # cfg file parsing
 
 def extractconf():
 

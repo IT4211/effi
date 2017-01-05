@@ -12,14 +12,14 @@ def ParseCommandLine():
     parser.add_argument('-v', '--verbose', help='enables printing of additional program messages', action='store_true')
     parser.add_argument('-f', '--file', type=ValidateFile,
                         required=True, help='Specify the image file from which to extract the file.')
-
+    parser.add_argument('-p', '--fullpath', help='Specifies whether to extract the file by implementing the full path.', action='store_true')
     global gl_args
 
     gl_args = parser.parse_args() # image file
 
     DisplayMessage("Command line processed: Successfully")
 
-    return gl_args.file
+    return gl_args.file, gl_args.fullpath
 
 def ValidateFile(theFile):
     if not os.path.exists(theFile):

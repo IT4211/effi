@@ -40,8 +40,9 @@ class tsk():
 
     def __init__(self, url):
         self.url = url
-        self._recursive = False
+        self._recursive = True
         self.extract_list = list()
+        self.fullpath = list()
         self.oCSV = _effi._CSVWriter("result.csv")
 
     def loadimage(self):
@@ -71,7 +72,7 @@ class tsk():
         self.path = self.conf[6]
         self.condition = self.conf[7]
 
-    def list_directory(self, directory, stack=None):
+    def list_directory(self, directory, stack=None, path_stack=None):
         stack.append(directory.info.fs_file.meta.addr)
 
         for directory_entry in directory:
@@ -87,22 +88,26 @@ class tsk():
                 continue
 
             # filtering
-            self.print_directory_entry(directory_entry, prefix=prefix)
+            self.print_directory_entry(directory_entry, prefix=prefix, path_stack=path_stack)
 
             if self._recursive:
                 try:
                     sub_directory = directory_entry.as_directory()
+                    path_stack.append(directory_entry.info.name.name)
+                    name = directory_entry.info.name.name
                     inode = directory_entry.info.meta.addr
 
                     # This ensures that we don't recurse into a directory
                     # above the current level and thus avoid circular loops.
                     if inode not in stack:
-                        self.list_directory(sub_directory, stack)
+                        self.list_directory(sub_directory, stack, path_stack)
 
                 except IOError:
                     pass
 
         stack.pop(-1)
+        if len(path_stack):
+            path_stack.pop(-1)
 
     def open_directory(self, inode_or_path):
         inode = None
@@ -122,22 +127,25 @@ class tsk():
 
         return directory
 
-    def print_directory_entry(self, directory_entry, prefix=""):
+    def print_directory_entry(self, directory_entry, prefix="", path_stack=list()):
 
         meta = directory_entry.info.meta
         name = directory_entry.info.name
         ext = os.path.splitext(name.name)
 
+        if type(meta) != pytsk3.TSK_FS_META:
+            return
         mtime = time.ctime(meta.mtime)
         atime = time.ctime(meta.atime)
         ctime = time.ctime(meta.crtime)
         etime = time.ctime(meta.ctime)
         size = meta.size
+        path = "/".join(path_stack)
 
         maceTime = [meta.mtime, meta.atime, meta.crtime, meta.ctime]
 
         print mtime, atime, ctime, etime, name.name, size
-        self.oCSV.writeCSVRow(name.name, str(ext[1]), "N/A", size, mtime, atime, ctime, etime, "N/A")
+        self.oCSV.writeCSVRow(name.name, str(ext[1]), path, size, mtime, atime, ctime, etime, "N/A")
 
         name_type = "-"
         if name:
@@ -169,55 +177,65 @@ class tsk():
                 if meta and name:
                     print("{0:s}{1:s} {2:s}:\t{3:s}".format(
                         prefix, directory_entry_type, inode, filename))
-                    self.extract_list.append((inode, filename, maceTime))
+                    self.extract_list.append((inode, filename, maceTime, path))
 
     def debug_print_extlist(self):
-        print "[debug] extract_list"
         print self.extract_list
 
-    def extract_directory_entry(self):
+    def extract_directory_entry(self, path_option):
 
         for i in self.extract_list:
             f = self.fs_info.open_meta(inode = int(i[0]))
-            print "[debug] ", type(f.info.meta)
-            print "[debug] TEST", int(i[0])
             name = i[1]
             print name
 
             mace = i[2]
             print mace
 
+            path = i[3]
+            print path
+
             offset = 0
             size = f.info.meta.size
-            BUFF_SIZE = 1024 * 1024
+            #BUFF_SIZE = 800000000 #1024 * 1024
 
             while offset < size:
-                available_to_read = min(BUFF_SIZE, size - offset)
+                available_to_read = size
                 data = f.read_random(offset, available_to_read)
                 if not data: break
 
                 offset += len(data)
 
                 try:
-                    # path!!
-                    if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
-                        path = os.path.join("./output/", name)
-                        os.mkdir(path)
+                    # path option
+                    if path_option:
+                        if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
+                            path = os.path.join("./output/", path, name)
+                            os.mkdir(path)
+                        else:
+                            print "[debug:bp]"
+                            path = os.path.join("./output/", path, name)
+                            output = open(path, "w")
+                            output.write(data)
                     else:
-                        path = os.path.join("./output/", name)
-                        output = open(path, "w")
-                        output.write(data)
+                        if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
+                            path = os.path.join("./output/", name)
+                            os.mkdir(path)
+                        else:
+                            path = os.path.join("./output/",  name)
+                            output = open(path, "w")
+                            output.write(data)
 
                 except:
-                    pass
+                    print "[debug:except]"
 
                 finally:
                     output.close()
-                    print "[debug] : ", path
                     if f.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
                         #dh = CreateDirectory(path, sa)
                         pass
                     else:
+                        print "[debug]", path
                         fh = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, 0)
                         SetFileTime(fh, mace[0], mace[1], mace[2], mace[3])
                         CloseHandle(fh)
