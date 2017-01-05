@@ -14,8 +14,7 @@ def extractconf():
 def infix_to_postfix(infix_exp):
 	stack = []
 	postfix = []
-	relational = ['>', '<', '=', '>=', '<=', '!=']
-	opnd = ['mtime', 'atime', 'ctime', 'etime', 'ext', 'size', 'path']
+	relational = ['>', '<', '==', '>=', '<=', '!=']
 	logicalop = ['and', 'or']
 
 	infix_exp = infix_exp.replace('(', '( ')
@@ -33,7 +32,7 @@ def infix_to_postfix(infix_exp):
 			peek = stack[-1:]
 			if (not is_empty) and (peek in relational):
 				postfix.append(stack.pop())
-				stack.append(i)
+			stack.append(i)
 
 		elif i == '(':
 			stack.append(i)
@@ -43,7 +42,6 @@ def infix_to_postfix(infix_exp):
 			while top_op != '(':
 				postfix.append(top_op)
 				top_op = stack.pop()
-
 
 		else:
 			postfix.append(i)
@@ -56,14 +54,14 @@ def infix_to_postfix(infix_exp):
 def search_condition(postfix_exp):
 	exp = postfix_exp.split(" ")
 	stack = []
-	op = ['>', '<', '=', '>=', '<=', '!=', 'and', 'or']
+	op = ['>', '<', '==', '>=', '<=', '!=', 'and', 'or']
 	for i in exp:
 		if i not in op:
 			stack.append(i)
 		else:
-			op2 = stack.pop()
-			op1 = stack.pop()
-			exp = op1 + " " + i + " " + op2
+			op2 = str(stack.pop())
+			op1 = str(stack.pop())
+			exp = "%s %s %s" % (op1 , i ,op2)
 			stack.append(eval(exp))
 
 	return stack.pop()

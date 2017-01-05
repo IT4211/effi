@@ -63,14 +63,7 @@ class tsk():
 
     def setconf(self):
         self.conf = _conf.extractconf()
-        self.mtime = self.conf[0]
-        self.atime = self.conf[1]
-        self.ctime = self.conf[2]
-        self.etime = self.conf[3]
-        self.ext = self.conf[4]
-        self.size = self.conf[5]
-        self.path = self.conf[6]
-        self.condition = self.conf[7]
+        self.condition = self.conf[0]
 
     def list_directory(self, directory, stack=None, path_stack=None):
         stack.append(directory.info.fs_file.meta.addr)
@@ -135,6 +128,7 @@ class tsk():
 
         if type(meta) != pytsk3.TSK_FS_META:
             return
+
         mtime = time.ctime(meta.mtime)
         atime = time.ctime(meta.atime)
         ctime = time.ctime(meta.crtime)
@@ -142,10 +136,19 @@ class tsk():
         size = meta.size
         path = "/".join(path_stack)
 
+        #filter , false -> return
+        postfix = _conf.infix_to_postfix(self.condition[1])
+
+        postfix = postfix.replace('mtime', str(meta.mtime)).replace('atime', str(meta.atime)).replace('ctime', str(meta.crtime)).replace('etime', str(meta.ctime)).replace('ext', '"'+str(ext[1])+'"').replace('size', str(size)).replace('path', str(path))
+
+        if not _conf.search_condition(postfix):
+            print "[debug : return]", name.name, meta.mtime, size
+            return
+
         maceTime = [meta.mtime, meta.atime, meta.crtime, meta.ctime]
 
         print mtime, atime, ctime, etime, name.name, size
-        self.oCSV.writeCSVRow(name.name, str(ext[1]), path, size, mtime, atime, ctime, etime, "N/A")
+        self.oCSV.writeCSVRow(name.name, str(ext[1]), path, size, mtime, atime, ctime, etime)
 
         name_type = "-"
         if name:

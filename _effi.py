@@ -44,14 +44,14 @@ class _CSVWriter:
             self.csvFile = open(fileName, 'ab')
             self.writer = csv.writer(self.csvFile, delimiter=',', quoting=csv.QUOTE_ALL)
             self.writer.writerow(('FileName', 'Ext', 'Path', 'Size', 'Modified Time',
-                                  'Access Time', 'Create Time', 'Entry Time', 'SHA1'))
+                                  'Access Time', 'Create Time', 'Entry Time'))
         except:
             log.error('CSV File Failure')
 
     def writeCSVRow(self, fileName, fileExt, filePath, fileSize,
-                    mTime, aTime, cTime, eTime, sha1):
+                    mTime, aTime, cTime, eTime):
         self.writer.writerow((fileName, fileExt, filePath, fileSize,
-                              mTime, aTime, cTime, eTime, sha1))
+                              mTime, aTime, cTime, eTime))
 
     def writerClose(self):
         self.csvFile.close()
